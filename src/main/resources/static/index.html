@@ -53,7 +53,7 @@
         (function () {
             var role = sessionStorage.getItem('cp_role');
             if (!role) { window.location.replace('/login.html'); }
-            else if (role === 'user') { window.location.replace('/user.html'); }
+            else if (role === 'user' || role === 'staff') { window.location.replace('/user.html'); }
         })();
     </script>
 </head>

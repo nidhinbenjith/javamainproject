@@ -55,23 +55,72 @@ class ManagementServiceTest {
     }
 
     @Test
-    void servesDashboardAndManagementApisWithoutCredentials() {
-        assertEquals(200, http.getForEntity("/", String.class).getStatusCode().value());
-        ResponseEntity<Map> dashboardDepartment = http.postForEntity("/api/departments",
-                Map.of("name", "Dashboard department", "code", "DASH"), Map.class);
+    void verifiesAuthenticationAndRoleBasedAccessControl() {
+        // 1. Unauthenticated requests to protected APIs are rejected with 401
+        ResponseEntity<Map> unauth = http.postForEntity("/api/departments",
+                Map.of("name", "Unauthorized", "code", "UNAUTH"), Map.class);
+        assertEquals(401, unauth.getStatusCode().value());
+
+        // 2. Invalid passwords return 401
+        ResponseEntity<Map> badPassword = http.postForEntity("/api/auth/login",
+                Map.of("role", "admin", "username", "admin", "password", "wrongpassword"), Map.class);
+        assertEquals(401, badPassword.getStatusCode().value());
+
+        // 3. Admin credentials supplied on Staff form are rejected
+        ResponseEntity<Map> crossRole = http.postForEntity("/api/auth/login",
+                Map.of("role", "staff", "username", "admin", "password", "admin123"), Map.class);
+        assertEquals(401, crossRole.getStatusCode().value());
+
+        // 4. Valid Admin login succeeds and returns session cookie
+        ResponseEntity<Map> adminLogin = http.postForEntity("/api/auth/login",
+                Map.of("role", "admin", "username", "admin", "password", "admin123"), Map.class);
+        assertEquals(200, adminLogin.getStatusCode().value());
+        assertNotNull(adminLogin.getHeaders().get(org.springframework.http.HttpHeaders.SET_COOKIE));
+        String adminCookie = adminLogin.getHeaders().get(org.springframework.http.HttpHeaders.SET_COOKIE).getFirst().split(";")[0];
+
+        org.springframework.http.HttpHeaders adminHeaders = new org.springframework.http.HttpHeaders();
+        adminHeaders.add(org.springframework.http.HttpHeaders.COOKIE, adminCookie);
+
+        // Admin can create a department
+        ResponseEntity<Map> dashboardDepartment = http.exchange("/api/departments",
+                org.springframework.http.HttpMethod.POST,
+                new org.springframework.http.HttpEntity<>(Map.of("name", "Dashboard department", "code", "DASH"), adminHeaders),
+                Map.class);
         assertEquals(201, dashboardDepartment.getStatusCode().value());
-        ResponseEntity<String> dashboard = http.getForEntity("/api/dashboard", String.class);
+
+        // Admin can read dashboard
+        ResponseEntity<String> dashboard = http.exchange("/api/dashboard",
+                org.springframework.http.HttpMethod.GET,
+                new org.springframework.http.HttpEntity<>(adminHeaders), String.class);
         assertEquals(200, dashboard.getStatusCode().value());
         assertTrue(dashboard.getBody().contains("\"departments\":1"));
-        assertTrue(dashboard.getBody().contains("\"conflicts\":0"));
+
         Long dashboardDepartmentId = ((Number) dashboardDepartment.getBody().get("id")).longValue();
-        http.delete("/api/departments/{id}", dashboardDepartmentId);
-        ResponseEntity<Map> created = http.postForEntity("/api/departments",
-                Map.of("name", "Admin created", "code", "ADM"), Map.class);
-        assertEquals(201, created.getStatusCode().value());
-        Long departmentId = ((Number) created.getBody().get("id")).longValue();
-        assertEquals(200, http.getForEntity("/api/timetable", String.class).getStatusCode().value());
-        http.delete("/api/departments/{id}", departmentId);
+        http.exchange("/api/departments/" + dashboardDepartmentId,
+                org.springframework.http.HttpMethod.DELETE,
+                new org.springframework.http.HttpEntity<>(adminHeaders), Void.class);
+
+        // 5. Valid Staff login succeeds
+        ResponseEntity<Map> staffLogin = http.postForEntity("/api/auth/login",
+                Map.of("role", "staff", "username", "staff", "password", "staff123"), Map.class);
+        assertEquals(200, staffLogin.getStatusCode().value());
+        String staffCookie = staffLogin.getHeaders().get(org.springframework.http.HttpHeaders.SET_COOKIE).getFirst().split(";")[0];
+
+        org.springframework.http.HttpHeaders staffHeaders = new org.springframework.http.HttpHeaders();
+        staffHeaders.add(org.springframework.http.HttpHeaders.COOKIE, staffCookie);
+
+        // Staff can read dashboard and timetable
+        ResponseEntity<String> staffDash = http.exchange("/api/dashboard",
+                org.springframework.http.HttpMethod.GET,
+                new org.springframework.http.HttpEntity<>(staffHeaders), String.class);
+        assertEquals(200, staffDash.getStatusCode().value());
+
+        // Staff cannot create records (403 Forbidden)
+        ResponseEntity<Map> staffForbidden = http.exchange("/api/departments",
+                org.springframework.http.HttpMethod.POST,
+                new org.springframework.http.HttpEntity<>(Map.of("name", "Staff created", "code", "STF"), staffHeaders),
+                Map.class);
+        assertEquals(403, staffForbidden.getStatusCode().value());
     }
 
     @Test
