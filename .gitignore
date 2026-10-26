@@ -1,0 +1,34 @@
+# Maven build output
+target/
+
+# Java output and logs
+*.class
+*.log
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+nbproject/private/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+application-local.properties
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Local databases and uploaded files
+*.mv.db
+*.trace.db
+uploads/
+data/
+
+# Local credentials and configuration
+application-local.properties

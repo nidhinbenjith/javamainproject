@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CampusPlan Admin Portal – College timetable administration dashboard">
+    <title>Admin Portal — CampusPlan</title>
+    <link rel="stylesheet" href="/style.css?v=20261023-3">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        /* Admin-portal extras */
+        .admin-portal-badge {
+            display: flex; align-items: center; gap: 6px;
+            margin: 0 8px 18px; padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(49,94,232,0.18);
+            border: 1px solid rgba(49,94,232,0.3);
+            color: #91b3ff; font-size: 11px; font-weight: 600;
+        }
+        .admin-portal-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #5b8df0; }
+        .sidebar-user-row {
+            display: flex; align-items: center; gap: 9px; padding: 4px 8px 10px;
+        }
+        .sidebar-user-avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: linear-gradient(135deg, #315ee8, #6c3ff5);
+            display: grid; place-items: center;
+            font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .sidebar-user-info strong { display: block; font-size: 11px; color: #cdd9ec; }
+        .sidebar-user-info small  { display: block; font-size: 10px; color: #6e8aaa; }
+        .btn-sidebar-logout {
+            width: calc(100% - 16px); margin: 0 8px 8px;
+            height: 34px; border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 8px; background: transparent;
+            color: #8fa5c5; font: inherit; font-size: 12px; cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-sidebar-logout:hover { background: rgba(255,255,255,0.07); color: #e2eaf5; }
+        .topbar-portal-tag {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 11px; border-radius: 20px;
+            background: rgba(49,94,232,0.08); border: 1px solid rgba(49,94,232,0.18);
+            color: #315ee8; font-size: 11px; font-weight: 600;
+        }
+        .topbar-portal-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: #315ee8; }
+        .topbar-right-group { display: flex; align-items: center; gap: 10px; }
+    </style>
+    <script src="/app.js?v=20261023-5" defer></script>
+    <script>
+        // Auth guard — runs synchronously before page renders
+        (function () {
+            var role = sessionStorage.getItem('cp_role');
+            if (!role) { window.location.replace('/login.html'); }
+            else if (role === 'user' || role === 'staff') { window.location.replace('/user.html'); }
+        })();
+    </script>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <a class="brand" href="/login.html" aria-label="CampusPlan home">
+                <span class="brand-mark">AT</span>
+                <span><strong>CampusPlan</strong><small>Admin Portal</small></span>
+            </a>
+
+            <!-- Admin badge -->
+            <div class="admin-portal-badge">
+                <div class="dot"></div>
+                <span>🛡️ Administrator</span>
+            </div>
+
+            <p class="nav-heading">WORKSPACE</p>
+            <nav id="main-nav" aria-label="Main navigation">
+                <button class="nav-link active" data-page="dashboard"><span>▦</span> Dashboard</button>
+                <p class="nav-heading">ACADEMIC SETUP</p>
+                <button class="nav-link" data-page="departments"><span>◫</span> Departments</button>
+                <button class="nav-link" data-page="courses"><span>▤</span> Courses</button>
+                <button class="nav-link" data-page="classes"><span>▣</span> Classes &amp; batches</button>
+                <button class="nav-link" data-page="teachers"><span>♙</span> Teachers</button>
+                <button class="nav-link" data-page="subjects"><span>▧</span> Subjects</button>
+                <button class="nav-link" data-page="classrooms"><span>⌂</span> Classrooms</button>
+                <button class="nav-link" data-page="time-slots"><span>◷</span> Time slots</button>
+                <button class="nav-link" data-page="assignments"><span>⇄</span> Teacher assignments</button>
+                <button class="nav-link" data-page="requirements"><span>☷</span> Subject requirements</button>
+                <button class="nav-link" data-page="teacher-availability"><span>◷</span> Teacher availability</button>
+                <p class="nav-heading">TIMETABLE</p>
+                <button class="nav-link" data-page="generate"><span>✦</span> Generate timetable</button>
+                <button class="nav-link" data-page="timetable"><span>▦</span> View timetable</button>
+                <button class="nav-link" data-page="conflicts"><span>⚑</span> Conflict report</button>
+                <p class="nav-heading">PREFERENCES</p>
+                <button class="nav-link" data-page="settings"><span>⚙</span> Settings &amp; help</button>
+            </nav>
+
+            <!-- User row + logout -->
+            <div class="sidebar-note" style="padding-bottom:6px;">
+                <div class="sidebar-user-row">
+                    <div class="sidebar-user-avatar" id="sb-avatar">A</div>
+                    <div class="sidebar-user-info">
+                        <strong id="sb-name">Administrator</strong>
+                        <small>Full admin access</small>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-sidebar-logout" id="btn-logout">⇠ Sign Out</button>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <button class="menu-button" id="menu-button" aria-label="Toggle navigation">☰</button>
+                <div class="breadcrumb"><span>Admin</span><b>/</b><strong id="breadcrumb-title">Dashboard</strong></div>
+                <div class="topbar-right-group">
+                    <div class="topbar-portal-tag"><div class="dot"></div> Admin Portal</div>
+                </div>
+            </header>
+            <div id="notice" class="notice hidden" role="status"></div>
+            <section id="view" class="content" aria-live="polite"></section>
+            <footer class="app-footer">CampusPlan <span>·</span> Admin Portal — Full timetable management</footer>
+        </main>
+    </div>
+
+    <script>
+        // Set admin name from session
+        (function () {
+            const name = sessionStorage.getItem('cp_name') || 'Administrator';
+            const el = document.getElementById('sb-name');
+            if (el) el.textContent = name;
+            const av = document.getElementById('sb-avatar');
+            if (av) av.textContent = name.charAt(0).toUpperCase();
+        })();
+
+        // Logout
+        document.getElementById('btn-logout').addEventListener('click', async function () {
+            await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        });
+    </script>
+</body>
+</html>

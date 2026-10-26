@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CampusPlan – Sign in to the Automatic Timetable Generator">
+    <title>Sign In — CampusPlan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #0f1e3d;
+            --blue: #315ee8;
+            --blue-dark: #1e46c9;
+            --blue-light: #eef2ff;
+            --purple: #6c3ff5;
+            --green: #10b981;
+            --border: #e2e8f0;
+            --muted: #64748b;
+            --surface: #ffffff;
+            --bg: #f1f4fb;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+        }
+        html, body {
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: #1a2540;
+            -webkit-font-smoothing: antialiased;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Decorative background blobs */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: -40%;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(49,94,232,0.12) 0%, transparent 45%),
+                radial-gradient(circle at 80% 80%, rgba(108,63,245,0.10) 0%, transparent 45%),
+                radial-gradient(circle at 60% 10%, rgba(16,185,129,0.08) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 450px;
+            animation: fadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Brand header */
+        .brand-header {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+        .brand-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 62px; height: 62px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #315ee8, #6c3ff5);
+            color: #fff;
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            box-shadow: 0 10px 24px rgba(49,94,232,0.28);
+            margin-bottom: 14px;
+        }
+        .brand-name {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: var(--navy);
+        }
+        .brand-name span { color: var(--blue); }
+        .brand-sub {
+            margin-top: 5px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        /* Card */
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 32px 30px 28px;
+            box-shadow: 0 4px 6px -1px rgba(15,30,61,0.03), 0 20px 48px rgba(15,30,61,0.08);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+
+        /* Question and description */
+        .card-question {
+            font-size: 21px;
+            font-weight: 800;
+            color: #0f1e3d;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+        .card-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.55;
+            margin-bottom: 22px;
+        }
+
+        /* Role Selection Grid */
+        .role-options {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .role-option-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 18px;
+            background: #f8fafc;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+            width: 100%;
+            outline: none;
+        }
+        .role-option-card:hover {
+            border-color: var(--blue);
+            background: var(--blue-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(49,94,232,0.12);
+        }
+        .role-option-card:focus-visible {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(49,94,232,0.25);
+        }
+        .role-option-card:active {
+            transform: translateY(0);
+        }
+
+        .role-icon-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            flex-shrink: 0;
+            font-size: 24px;
+            transition: transform 0.2s ease;
+        }
+        .role-option-card:hover .role-icon-box {
+            transform: scale(1.08);
+        }
+
+        .admin-icon-box {
+            background: rgba(49,94,232,0.12);
+            color: var(--blue);
+        }
+        .staff-icon-box {
+            background: rgba(16,185,129,0.14);
+            color: #059669;
+        }
+
+        .role-info {
+            flex: 1;
+        }
+        .role-title {
+            display: block;
+            font-size: 15.5px;
+            font-weight: 700;
+            color: #0f1e3d;
+            margin-bottom: 3px;
+            letter-spacing: -0.01em;
+        }
+        .role-desc {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+        .role-arrow {
+            font-size: 18px;
+            color: #94a3b8;
+            transition: transform 0.2s ease, color 0.2s ease;
+            font-weight: 700;
+        }
+        .role-option-card:hover .role-arrow {
+            color: var(--blue);
+            transform: translateX(4px);
+        }
+
+        /* Login Form View */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease both;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-back:hover {
+            color: var(--blue);
+            background: var(--blue-light);
+        }
+
+        .role-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .role-pill.admin {
+            background: rgba(49,94,232,0.12);
+            color: var(--blue);
+            border: 1px solid rgba(49,94,232,0.22);
+        }
+        .role-pill.staff {
+            background: rgba(16,185,129,0.14);
+            color: #047857;
+            border: 1px solid rgba(16,185,129,0.25);
+        }
+
+        .form-header {
+            margin-bottom: 22px;
+        }
+        .form-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f1e3d;
+            letter-spacing: -0.02em;
+            margin-bottom: 5px;
+        }
+        .form-subtitle {
+            font-size: 12.5px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        /* Error Box */
+        .error-msg {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: var(--danger);
+            font-size: 12.5px;
+            font-weight: 500;
+            margin-bottom: 18px;
+            line-height: 1.45;
+        }
+        .error-msg.visible {
+            display: flex;
+        }
+        .error-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Form Fields */
+        .field-group {
+            margin-bottom: 18px;
+        }
+        .field-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 7px;
+        }
+        .input-wrap {
+            position: relative;
+        }
+        .field-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font: inherit;
+            font-size: 13.5px;
+            color: #1a2540;
+            background: #ffffff;
+            outline: none;
+            transition: border-color 0.18s, box-shadow 0.18s;
+        }
+        .field-input.has-toggle {
+            padding-right: 44px;
+        }
+        .field-input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(49,94,232,0.12);
+        }
+        .field-input.input-error {
+            border-color: var(--danger);
+            background: #fffafa;
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 16px;
+            padding: 6px;
+            line-height: 1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s, background 0.15s;
+        }
+        .toggle-pw:hover {
+            color: var(--blue);
+            background: rgba(49,94,232,0.06);
+        }
+
+        /* Submit Button */
+        .btn-signin {
+            width: 100%;
+            height: 46px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #315ee8, #6c3ff5);
+            color: #fff;
+            font: inherit;
+            font-size: 14.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.18s, transform 0.15s, box-shadow 0.18s;
+            box-shadow: 0 4px 14px rgba(49,94,232,0.32);
+            letter-spacing: 0.01em;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-signin:hover:not(:disabled) {
+            opacity: 0.94;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(49,94,232,0.42);
+        }
+        .btn-signin:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .btn-signin:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .login-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.7;
+        }
+        .login-footer strong { color: #64748b; }
+
+        @media (max-width: 480px) {
+            body { padding: 16px 12px; }
+            .login-card { padding: 26px 20px 22px; border-radius: 18px; }
+            .brand-logo { width: 54px; height: 54px; font-size: 22px; border-radius: 16px; }
+            .brand-name { font-size: 23px; }
+            .card-question { font-size: 19px; }
+            .role-option-card { padding: 14px 14px; gap: 12px; }
+            .role-icon-box { width: 42px; height: 42px; font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="login-wrapper">
+    <header class="brand-header">
+        <div class="brand-logo" aria-hidden="true">AT</div>
+        <h1 class="brand-name">Campus<span>Plan</span></h1>
+        <p class="brand-sub">Automatic Timetable Generator · College Edition</p>
+    </header>
+
+    <main class="login-card">
+        <!-- ── VIEW 1: Role Selection ("Who are you?") ───────────────────────── -->
+        <section class="view-section active" id="view-role-selection" aria-labelledby="question-heading">
+            <h2 class="card-question" id="question-heading">Who are you?</h2>
+            <p class="card-desc">Select your role to access the timetable management portal.</p>
+
+            <div class="role-options" role="region" aria-label="Portal selection options">
+                <!-- Option 1: Admin -->
+                <button type="button" class="role-option-card" id="btn-select-admin" aria-label="Select Admin portal">
+                    <div class="role-icon-box admin-icon-box" aria-hidden="true">🛡️</div>
+                    <div class="role-info">
+                        <span class="role-title">Admin</span>
+                        <span class="role-desc">Manage the entire timetable system.</span>
+                    </div>
+                    <span class="role-arrow" aria-hidden="true">→</span>
+                </button>
+
+                <!-- Option 2: Staff -->
+                <button type="button" class="role-option-card" id="btn-select-staff" aria-label="Select Staff portal">
+                    <div class="role-icon-box staff-icon-box" aria-hidden="true">📅</div>
+                    <div class="role-info">
+                        <span class="role-title">Staff</span>
+                        <span class="role-desc">View timetables and check conflicts.</span>
+                    </div>
+                    <span class="role-arrow" aria-hidden="true">→</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ── VIEW 2: Login Form ────────────────────────────────────────────── -->
+        <section class="view-section" id="view-login-form" aria-labelledby="form-heading">
+            <div class="form-top-row">
+                <button type="button" class="btn-back" id="btn-back" aria-label="Return to role selection">
+                    ← Back
+                </button>
+                <div class="role-pill admin" id="form-role-badge">🛡️ Admin</div>
+            </div>
+
+            <header class="form-header">
+                <h2 class="form-title" id="form-heading">Admin Sign In</h2>
+                <p class="form-subtitle" id="form-subheading">Manage the entire timetable system.</p>
+            </header>
+
+            <!-- Error banner -->
+            <div class="error-msg" id="error-msg" role="alert" aria-live="assertive">
+                <span class="error-icon" aria-hidden="true">⚠</span>
+                <span id="error-text">Authentication error</span>
+            </div>
+
+            <form id="login-form" novalidate>
+                <!-- Username field -->
+                <div class="field-group">
+                    <label class="field-label" for="username-input">Username</label>
+                    <div class="input-wrap">
+                        <input class="field-input" type="text" id="username-input" name="username"
+                               placeholder="Enter your username" autocomplete="username" spellcheck="false" required>
+                    </div>
+                </div>
+
+                <!-- Password field -->
+                <div class="field-group">
+                    <label class="field-label" for="password-input">Password</label>
+                    <div class="input-wrap">
+                        <input class="field-input has-toggle" type="password" id="password-input" name="password"
+                               placeholder="Enter your password" autocomplete="current-password" required>
+                        <button type="button" class="toggle-pw" id="toggle-pw" aria-label="Show password" title="Show password">
+                            <span id="toggle-pw-icon">👁</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit button -->
+                <button type="submit" class="btn-signin" id="btn-signin">
+                    <span id="btn-text">Sign In</span>
+                    <span class="spinner" id="btn-spinner" style="display:none;" aria-hidden="true"></span>
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <footer class="login-footer">
+        Runs locally · No data leaves your machine<br>
+        <strong>CampusPlan</strong> — College Timetable Manager
+    </footer>
+</div>
+
+<script>
+    // ── Application state ───────────────────────────────────────────────────────
+    let currentRole = null; // 'admin' or 'staff'
+
+    // DOM Elements
+    const viewRoleSelection = document.getElementById('view-role-selection');
+    const viewLoginForm     = document.getElementById('view-login-form');
+    const btnSelectAdmin    = document.getElementById('btn-select-admin');
+    const btnSelectStaff    = document.getElementById('btn-select-staff');
+    const btnBack           = document.getElementById('btn-back');
+
+    const formRoleBadge     = document.getElementById('form-role-badge');
+    const formHeading       = document.getElementById('form-heading');
+    const formSubheading    = document.getElementById('form-subheading');
+
+    const loginForm         = document.getElementById('login-form');
+    const usernameInput     = document.getElementById('username-input');
+    const passwordInput     = document.getElementById('password-input');
+    const togglePw          = document.getElementById('toggle-pw');
+    const togglePwIcon      = document.getElementById('toggle-pw-icon');
+
+    const errorMsg          = document.getElementById('error-msg');
+    const errorText         = document.getElementById('error-text');
+
+    const btnSignIn         = document.getElementById('btn-signin');
+    const btnText           = document.getElementById('btn-text');
+    const btnSpinner        = document.getElementById('btn-spinner');
+
+    // ── Navigation between Role Selection and Login Form ───────────────────────
+
+    btnSelectAdmin.addEventListener('click', () => selectRole('admin'));
+    btnSelectStaff.addEventListener('click', () => selectRole('staff'));
+    btnBack.addEventListener('click', returnToRoleSelection);
+
+    function selectRole(role) {
+        currentRole = role;
+        clearError();
+        usernameInput.value = '';
+        passwordInput.value = '';
+        usernameInput.classList.remove('input-error');
+        passwordInput.classList.remove('input-error');
+
+        // Reset password visibility to masked
+        passwordInput.type = 'password';
+        togglePwIcon.textContent = '👁';
+        togglePw.setAttribute('aria-label', 'Show password');
+        togglePw.setAttribute('title', 'Show password');
+
+        if (role === 'admin') {
+            formRoleBadge.textContent = '🛡️ Administrator';
+            formRoleBadge.className = 'role-pill admin';
+            formHeading.textContent = 'Admin Sign In';
+            formSubheading.textContent = 'Manage the entire timetable system.';
+            usernameInput.placeholder = 'Enter admin username';
+        } else {
+            formRoleBadge.textContent = '📅 Staff User';
+            formRoleBadge.className = 'role-pill staff';
+            formHeading.textContent = 'Staff Sign In';
+            formSubheading.textContent = 'View timetables and check conflicts.';
+            usernameInput.placeholder = 'Enter staff username';
+        }
+
+        viewRoleSelection.classList.remove('active');
+        viewLoginForm.classList.add('active');
+
+        // Focus first field
+        setTimeout(() => usernameInput.focus(), 80);
+    }
+
+    function returnToRoleSelection() {
+        currentRole = null;
+        clearError();
+        viewLoginForm.classList.remove('active');
+        viewRoleSelection.classList.add('active');
+    }
+
+    // ── Show / Hide password ───────────────────────────────────────────────────
+
+    togglePw.addEventListener('click', () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        togglePwIcon.textContent = isPassword ? '🔒' : '👁';
+        const label = isPassword ? 'Hide password' : 'Show password';
+        togglePw.setAttribute('aria-label', label);
+        togglePw.setAttribute('title', label);
+    });
+
+    // ── Validation and submission ──────────────────────────────────────────────
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await doLogin();
+    });
+
+    function showError(msg, targetInput = null) {
+        errorText.textContent = msg;
+        errorMsg.classList.add('visible');
+        if (targetInput) {
+            targetInput.classList.add('input-error');
+            targetInput.focus();
+        }
+    }
+
+    function clearError() {
+        errorMsg.classList.remove('visible');
+        usernameInput.classList.remove('input-error');
+        passwordInput.classList.remove('input-error');
+    }
+
+    usernameInput.addEventListener('input', () => {
+        usernameInput.classList.remove('input-error');
+        if (errorMsg.classList.contains('visible')) clearError();
+    });
+
+    passwordInput.addEventListener('input', () => {
+        passwordInput.classList.remove('input-error');
+        if (errorMsg.classList.contains('visible')) clearError();
+    });
+
+    async function doLogin() {
+        if (!currentRole) {
+            returnToRoleSelection();
+            return;
+        }
+
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        clearError();
+
+        // Client-side validations
+        if (!username) {
+            showError('Please enter your username.', usernameInput);
+            return;
+        }
+        if (!password) {
+            showError('Please enter your password.', passwordInput);
+            return;
+        }
+
+        // Prevent duplicate form submission & provide loading feedback
+        btnSignIn.disabled = true;
+        btnText.textContent = 'Signing in…';
+        btnSpinner.style.display = 'inline-block';
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    role: currentRole,
+                    username: username,
+                    password: password
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                sessionStorage.setItem('cp_role', data.role);
+                sessionStorage.setItem('cp_name', data.name || (data.role === 'admin' ? 'Administrator' : 'Staff User'));
+                if (data.username) {
+                    sessionStorage.setItem('cp_user', data.username);
+                }
+
+                // Redirect to the appropriate portal
+                const targetUrl = data.redirect || (data.role === 'admin' ? '/index.html' : '/user.html');
+                window.location.href = targetUrl;
+            } else {
+                const data = await res.json().catch(() => ({}));
+                const message = data.message || (currentRole === 'admin'
+                    ? 'Invalid Admin username or password.'
+                    : 'Invalid Staff username or password.');
+                showError(message, passwordInput);
+                passwordInput.select();
+            }
+        } catch {
+            showError('Cannot reach the server. Make sure CampusPlan is running.');
+        } finally {
+            btnSignIn.disabled = false;
+            btnText.textContent = 'Sign In';
+            btnSpinner.style.display = 'none';
+        }
+    }
+
+    // ── Check existing authenticated session ───────────────────────────────────
+    (function checkExistingSession() {
+        const existingRole = sessionStorage.getItem('cp_role');
+        if (existingRole === 'admin') {
+            window.location.replace('/index.html');
+        } else if (existingRole === 'staff' || existingRole === 'user') {
+            window.location.replace('/user.html');
+        }
+    })();
+</script>
+</body>
+</html>
